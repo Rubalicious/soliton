@@ -25,9 +25,17 @@ def ds2soln(x,y):
     E = x**4
     F = x**5
     psi11 = -2*x*(C+(1+x)**2)
+
 def dromion(x,y):
-    num = (y**2-x**2)
-    den = (y**2*x+x**3/3)**2-x**4*y**2-1
+    # x = x-5j
+    # y = 1j*y
+    num = 2*(y**2-x**2)
+    den = (y**2+x**2/3)**2*x**2-x**4*y**2-1
+    return num/den
+
+def dromion_simple(x,y):
+    num = y-x
+    den = (y*x)**2-x**4/4-1
     return num/den
 
 def linear_ds(x, y):
@@ -58,7 +66,7 @@ def ds2(x, y):
 
 ds = ds
 Z = ds(X,Y)
-# Z = np.real(Z)
+Z = np.real(Z)
 # Z = (X**2+Y**2)/((X**2+Y**2)**2 + 1)
 # e = 20
 # Z = Z[e:N-e,e:N-e]

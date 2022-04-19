@@ -16,13 +16,36 @@ def p2(x, y, t, lam):
 def p3(x, y, t, lam):
     return np.power( p1(x, y, t, lam) , 3 ) + 3*np.power( p1(x, y, t, lam) , 2 )*(2j*y-24*lam*t) - 72*p1(x, y, lam, t)
 
+def wavefxn(x, y, t, lam, s):
+    # p = lambda x,y,t,lam: 1
+    # if s==0:
+    #     p = 1
+    if s == 1:
+        p = p1
+    elif s == 2:
+        p = p2
+    elif s == 3:
+        p = p3
+    psi = p(x,y,t,lam)@np.exp(phi(x,y,t,lam))
+    norm2 = np.abs(psi)**2
+    return norm2
+
 # scattering potential Psi
 def Psi(x, y, t, lam, s):
     if s not in [0,1,2,3]:
         raise('choose s in {0,1,2,3}')
     sth_derivative = np.diff(np.exp(phi(x, y, t, lam)), s)
-    schur_polynomial_ps =  np.exp(-phi(x, y, t, lam))[s:-s][s:-s]*sth_derivative
-    psi = schur_polynomial_ps*np.exp(phi(x, y, t, lam))
+    # print(np.shape(np.exp(-phi(x, y, t, lam))))
+    # print(np.shape(sth_derivative))
+    schur_polynomial_ps =  np.exp(-phi(x, y, t, lam))@sth_derivative
+    psi = np.exp(phi(x, y, t, lam))@schur_polynomial_ps
+    return psi
+
+def integrand(x,y,t,lam,s):
+    psi = Psi(x,y,t,lam,s)
+    int = np.abs(psi)**2
+    return int
+
 
 
 
@@ -73,7 +96,7 @@ def tau_til_depth2(x, y, t, lam):
 
 # depth 3 lump
 def tau_til_depth3(x, y, t, lam):
-    # coefficients of modulus of p_3
+    # coefficients of real and imaginary parts of p_3
     alp = -36*lam*(lam+2)*t
     bet = 4*lam*(lam+3)*(np.power(y, 2) + 72*lam**2*t**2) + 144*lam**3*(lam+6)*t**2 - 20*lam**2*y**2
     gam = -12*lam**2*t*(4*lam*(lam+3)*np.power(y, 2)+144*lam**3*(lam+6)*t**2) + 48*lam**3*(2*lam+9)*t*np.power(y, 2)
@@ -123,12 +146,33 @@ def depth01_scattering(x, y, t, lam, eta=1):
     trig1 = np.cosh(np.real(phi(x, y, t, lam-eta)) - np.log(arg)/2 - np.log(lam/eta))
     term2 = ((z-1/(lam+eta))*np.cos((eta**2-lam**2)*y) - 2*eta*y*np.sin((eta**2-lam**2)*y))/(lam+eta)
     out = fac*(alpha*trig1+term2)
+    out+= tau_depth0(x,y,t,lam) + tau_depth1(x,y,t,eta)
     return out
 
+def depth02_scattering(x,y,t,lam, eta=1):
+    B = 4*eta*(y-6*eta*t)
+    C = 4*eta*(eta*(y-6*eta*t)**2- 6*t)
+    c4 = 1
+    c3 = -4/(eta+lam)+2*B
+    c2 = 12/(eta+lam)**2 - 6*B/(eta+lam) + B**2+2*C
+    c1 = -24/(eta+lam)**3 + 12*B/(eta+lam)**2 - 2*(B**2+2*C)/(eta+lam) + 2*B*C
+    c0 = 24/(eta+lam)**4 - 12*B/(eta+lam)**3 + 2*(B**2+2*C)/(eta+lam)**2 - 2*B*C/(eta+lam) + C**2 + 4*y**2
+
+    tau_le = c4*x**4 + c3*x**3 + c2*x**2 + c1*x + c0
+    tau_le += tau_depth0(x,y,t,lam) + tau_til_depth2(x,y,t,eta)
+    return tau_le
+
+# Rank 2 depth 00 soliton solutions
 def tau_til_depth0_hr(x, y, t, lam, eta=1):
     return ((lam-eta)/(lam+eta))**2/(4*lam*eta)*np.exp(2*np.real(phi(x, y, t, lam+eta)))
 
-# Rank 2 depth 1 soliton solutions - hr is higher rank
+def tau_tildepth01_hr(x,y,t,lam, eta=1):
+    term1 = (x-12*eta**2*t-1/eta)**2 + 1/(4*eta**2) + 4*eta**2*y**2
+    term2 = (x-12*eta**2*t-1/(lam+eta) )**2 + 4*eta**2*y**2
+    tau = term1/(4*eta*lam) + term2/(lam+eta)**2
+    return tau
+
+# Rank 2 depth 11 soliton solutions - hr is higher rank
 def tau_til_depth1_hr(x, y, t, lam, eta=1):
     out = tau_til_depth1(x, y, t, lam)*tau_til_depth1(x, y, t, eta)
     # t = t.astype('complex128')
@@ -158,6 +202,8 @@ forms = {
             'scattering 0': depth0_scattering,
             'scattering 1': depth1_scattering,
             'scattering 01': depth01_scattering,
-            'rank 2 depth 0': tau_til_depth0_hr,
-            'rank 2 depth 1': tau_til_depth1_hr
+            'scattering 02': depth02_scattering,
+            'rank 2 depth 00': tau_til_depth0_hr,
+            'rank 2 depth 01': tau_tildepth01_hr,
+            'rank 2 depth 11': tau_til_depth1_hr
         }

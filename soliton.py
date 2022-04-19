@@ -90,6 +90,7 @@ def my_first_widget():
 
     tau = forms['depth 1']
     U = np.real(build_solution(tau))
+
     # Rphi = np.real(phi(X, Y, 0, lam))
     img = plt.imshow(U)
 
@@ -249,9 +250,10 @@ def my_first_widget():
         gig = plt.figure(figsize=(8, 3))
         # gig.suptitle(rb.value_selected)
         n = 3
+        dT = 3
         for i in range(n):
             ax = gig.add_subplot(1,n,i+1)
-            T = -5+i*5
+            T = -dT+i*dT
             U = np.real(build_solution(tau, t=T, lam=eigenvalue )  )
             ax.imshow(U)
             ax.set_title('t = {}'.format(T))
@@ -301,6 +303,22 @@ def my_first_widget():
         ax.set_title('t = 5')
         gig.savefig('./figures/{}.png'.format(tau))
         # gig.close()
+    def figures_for_paper3(event):
+        tau = forms[rb.value_selected]
+
+        gig = plt.figure(figsize=(8, 3))
+        # gig.suptitle(rb.value_selected)
+        n = 5
+        eigenvalues = .5*np.exp(1j*np.linspace(0, np.pi/2, n))
+        for i in range(n):
+            ax = gig.add_subplot(1,n,i+1)
+            T = 5
+            U = np.real( build_solution(tau, t=T, lam=eigenvalues[i])  )
+            ax.imshow(U)
+            ax.set_title('({})'.format(i+1))
+            ax.set_xticks([])
+            ax.set_yticks([])
+        gig.savefig('./figures/{}_eigenvectors1.png'.format(rb.value_selected))
 
     time_slider.on_changed(update)
     eigen_slider.on_changed(update)
@@ -310,7 +328,7 @@ def my_first_widget():
     xmax.on_submit(update_domain)
     ymin.on_submit(update_domain)
     ymax.on_submit(update_domain)
-    save_button.on_clicked(save_image)
+    save_button.on_clicked(figures_for_paper)
     # toggle.on_clicked(update)
 
     plt.show()
