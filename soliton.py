@@ -14,7 +14,7 @@ from grammian_forms import *
 #         self.arg = arg
 
 # Define domain parameters
-N = 200
+N = 300
 window = 100
 # Lx = 5
 # Ly = 100
@@ -27,7 +27,7 @@ Y = Y.astype('complex128')
 
 # define eigenvalues
 eps = .1 # perturbation
-lam = 1 #+eps # +eps*1j #np.exp(1j*np.pi*(1/4))
+lam = .5#+eps # +eps*1j #np.exp(1j*np.pi*(1/4))
 eta = 1
 
 def build_solution(tau, t=0, lam=1, eta=1):
@@ -37,20 +37,59 @@ def build_solution(tau, t=0, lam=1, eta=1):
     return U
 
 def plot_evolution(tau):
-    before = build_solution(tau, t=-5)
-    now = build_solution(tau, t=0)
-    after = build_solution(tau, t=5)
+     # set up a figure twice as wide as it is tall
+    fig = plt.figure(figsize=plt.figaspect(0.3))
+    
+    for i in [1,2,3]:
+        ax = fig.add_subplot(1, 3, i, projection='3d')
+        # ax.set_title(r'$\lambda = e^{i\pi/8}$'.format(i))
+        t=3*(2*i-1)-9
+        ax.set_title('t={}'.format(t))
+        U = np.real(build_solution(tau, t=t, lam=lam))
+        surf = ax.plot_surface(X.astype('float64')[1:-1], Y.astype('float64')[1:-1], U.astype('float64'),
+                                rstride=1, cstride=1, cmap=cm.coolwarm,
+                                linewidth=0, antialiased=False
+                                )
+        # ax = fig.add_subplot(2, 5, i+5)
+        # U = np.real(build_solution(tau, t=t, lam=lam))
 
-    fig = plt.figure()
+        # ax.imshow(U)
+        # ax.set_yticks([])
+        # ax.set_xticks([])
+        # ax.set_yticklabels([])
+        # ax.set_xticklabels([])
 
-    axes = fig.add_subplot(131)
-    axes.imshow(before)
 
-    axes = fig.add_subplot(132)
-    axes.imshow(now)
+    plt.show()
 
-    axes = fig.add_subplot(133)
-    axes.imshow(after)
+def plot_transition(tau):
+     # set up a figure twice as wide as it is tall
+    fig = plt.figure(figsize=plt.figaspect(0.5))
+    
+    # U = U.astype('float64')
+    # =============
+    # First subplot
+    # =============
+    # set up the axes for the first plot
+    for i in range(1,6):
+        ax = fig.add_subplot(2, 5, i, projection='3d')
+        # ax.set_title(r'$\lambda = e^{i\pi/8}$'.format(i))
+
+        U = np.real(build_solution(tau, t=1, lam=np.exp(1j*np.pi*(i-1)/8)))
+        surf = ax.plot_surface(X.astype('float64')[1:-1], Y.astype('float64')[1:-1], U.astype('float64'),
+                                rstride=1, cstride=1, cmap=cm.coolwarm,
+                                linewidth=0, antialiased=False
+                                )
+        ax = fig.add_subplot(2, 5, i+5)
+        U = np.real(build_solution(tau, t=1, lam=np.exp(1j*np.pi*(i-1)/8)))
+
+        ax.imshow(U)
+        ax.set_yticks([])
+        ax.set_xticks([])
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+
+
     plt.show()
 
 def plot_heatmap(tau):
@@ -373,7 +412,9 @@ def make_movie(tau):
 # P3 = p3(X, Y, 0, lam)
 
 # plot_heatmap(tau_til_depth2)
-my_first_widget()
+# plot_transition(tau_til_depth2)
+plot_evolution(depth01_scattering)
+# my_first_widget()
 # make_movie(tau_til_depth2)
 
 # U1 = build_solution(tau_til_depth1)
